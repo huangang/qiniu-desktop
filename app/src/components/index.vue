@@ -24,7 +24,7 @@
                 保存
               </button>
               <button class="button is-success" v-on:click="back()">
-                返回
+                查看
               </button>
             </p>
         </div>
