@@ -1,23 +1,22 @@
 <template>
-  <p class="control">
-    <button class="button is-success" v-on:click="toSet()">
-      设置
-    </button>
-    <button class="button is-success"  v-show="path != ''" v-on:click="toPath(prePath)">
-      上一页
-    </button>
-    <button class="button is-success"  v-show="path != ''" v-on:click="toPath('')">
-      回首页
-    </button>
-  </p>
+  <nav class="nav has-shadow">
+    <div class="container">
+      <div class="nav-left">
+        <a class="nav-item is-tab" v-bind:class="[{ 'is-active': navigation.length <= 1 }]"  v-on:click="toPath('')">首页</a>
+        <a v-show="navigation.length > 1 && (navigation.length - 1) > $index" v-for="nav in navigation" class="nav-item is-tab" v-bind:class="[{ 'is-active': navigation.length - 2 == $index }]"  v-on:click="toPath(getNavPath([$index + 1]))">
+          {{ nav }}
+        </a>
+      </div>
+    </div>
+  </nav>
 
   <div class="tile is-ancestor" >
     <div class="tile is-parent">
       <table class="table">
         <thead>
         <tr>
-          <th>名字</th>
-          <th>更新时间</th>
+          <th>文件名</th>
+          <th>最后更新</th>
           <th>类型</th>
           <th></th>
         </tr>
@@ -37,7 +36,7 @@
           <td></td>
           <td>文件夹</td>
           <td class="is-icon">
-            <a href="#">
+            <a>
               <i class="fa fa-folder-o"></i>
             </a>
           </td>
@@ -65,14 +64,22 @@
     <button class="button is-success" v-on:click="toSet()">
       设置
     </button>
-    <button class="button is-success" v-show="path != ''" v-on:click="toPath(prePath)">
-      上一页
+
+    <button class="button is-success" v-on:click="selectFile('file')">
+      选择文件
+    </button>
+    <button class="button is-success" v-on:click="selectFile('files')">
+      选择文件夹
+    </button>
+    <button class="button is-success" v-on:click="uploadFile()">
+      上传
     </button>
     <button class="button is-success"  v-show="path != ''" v-on:click="toPath('')">
       回首页
     </button>
   </p>
-
+  <input type="file" id="file" v-show="false" />
+  <input type="file" id="files" v-show="false"  webkitdirectory />
 </template>
 <script>
 import http from 'http'
@@ -83,7 +90,9 @@ export default {
     return {
       list: {},
       path: '',
-      prePath: ''
+      prePath: '',
+      navigation: [],
+      selectId: 'file'
     }
   },
   created: function () {
@@ -96,6 +105,8 @@ export default {
       return localStorage.getItem('AccessKey') + ':' + Sign
     },
     getList: function (that, prefix = '') {
+      this.navigation = prefix.split('/')
+      console.log(this.navigation)
       this.prePath = this.path
       this.path = prefix
       var postData = querystring.stringify({
@@ -116,7 +127,6 @@ export default {
           'content-type': 'application/x-www-form-urlencoded'
         }
       }
-      console.log(options)
       var req = http.request(options, function (res) {
         var chunks = []
 
@@ -138,6 +148,7 @@ export default {
         case 'image/png':
         case 'image/jpeg':
         case 'image/gif':
+        case 'image/x-icon':
           type = 'fa-file-image-o'
           break
         case 'text/plain':
@@ -146,6 +157,7 @@ export default {
         case 'text/html':
         case 'text/css':
         case 'application/javascript':
+        case 'text/javascript':
           type = 'fa-file-code-o'
           break
         case 'audio/mp3':
@@ -168,6 +180,7 @@ export default {
         case 'image/png':
         case 'image/jpeg':
         case 'image/gif':
+        case 'image/x-icon':
           name = '图片'
           break
         case 'text/plain':
@@ -180,6 +193,7 @@ export default {
           name = 'css'
           break
         case 'application/javascript':
+        case 'text/javascript':
           name = 'js'
           break
         case 'audio/mp3':
@@ -190,6 +204,12 @@ export default {
           break
         case 'application/vnd.android.package-archive':
           name = 'apk'
+          break
+        case 'application/octet-stream':
+          name = '流文件'
+          break
+        case 'application/x-navimap':
+          name = 'map'
           break
         default:
           name = '未知类型'
@@ -211,6 +231,26 @@ export default {
     },
     toSet: function () {
       this.$route.router.go({name: 'index'})
+    },
+    getNavPath: function (index) {
+      var i = 0
+      var path = ''
+      this.navigation.forEach(function (nav) {
+        if (i <= index) {
+          path = path + '/' + nav
+        }
+        i++
+      })
+      return path.substring(1, path.length)
+    },
+    selectFile: function (id) {
+      this.selectId = id
+      var file = document.getElementById(this.selectId)
+      file.click()
+    },
+    uploadFile: function () {
+      var file = document.getElementById(this.selectId)
+      console.log(file.value)
     }
   }
 }
