@@ -5,7 +5,8 @@
   "main": "electron.js",
   "dependencies": {
     "bulma": "^0.1.0",
-    "qiniu": "^6.1.11",
+    "qiniu-token-direct": "^1.0.3",
+    "qiniu-web-uploader": "^2.1.1",
     "vue": "^1.0.24",
     "vue-electron": "^1.0.0",
     "vue-resource": "^0.7.0",

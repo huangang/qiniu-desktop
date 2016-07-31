@@ -85,6 +85,7 @@
 import http from 'http'
 import querystring from 'querystring'
 import crypto from 'crypto'
+import Uploader from 'qiniu-web-uploader'
 export default {
   data () {
     return {
@@ -253,7 +254,30 @@ export default {
     },
     uploadFile: function () {
       console.log(this.selectFiles)
-      this.postByQiniu(this.selectFiles.path)
+      var qntoken = require('qiniu-token-direct')
+      var time = new Date().getTime() / 1000 + 3600
+      time = Math.round(time)
+      var ext = this.selectFiles.path.split('.')[this.selectFiles.path.split('.').length - 1]
+      var path = this.path + time + '.' + ext
+      qntoken.config = {
+        access_key: localStorage.getItem('AccessKey'),
+        secret_key: localStorage.getItem('SecretKey'),
+        bucketname: localStorage.getItem('bucket'),
+        path: path
+      }
+      this.postFile(this.selectFiles.path)
+      var uptoken = {
+        uptoken: qntoken.getToken(), // 七牛上传凭证
+        key: Buffer(path).toString('base64').replace(/\//g, '_').replace(/\+/g, '-')
+      }
+      let uploader = new Uploader(this.selectFiles, uptoken)
+      console.log(uploader)
+      uploader.upload()
+      uploader.on('progress', () => {
+        console.log(uploader.percent) // 加载进度
+        console.log(uploader.offset) // 字节
+        console.log(uploader.file) // 文件
+      })
     },
     uploadToken: function (ext) {
       var time = new Date().getTime() / 1000 + 3600
@@ -261,7 +285,6 @@ export default {
       var policy = {
         scope: localStorage.getItem('bucket') + ':' + this.path + time + Math.random() * 1000 + '.' + ext,
         deadline: time
-//        returnBody: '{"name": $(fname),"size": $(fsize),"hash": $(etag)}'
       }
       policy = JSON.stringify(policy)
       var encodedPutPolicy = Buffer(policy).toString('base64').replace(/\//g, '_').replace(/\+/g, '-')
