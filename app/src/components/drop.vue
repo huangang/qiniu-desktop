@@ -254,7 +254,7 @@ export default {
     },
     uploadFile: function () {
       console.log(this.selectFiles)
-      var qntoken = require('qiniu-token-direct')
+      var qntoken = require('../libs/qiniu-token-direct/index')
       var time = new Date().getTime() / 1000 + 3600
       time = Math.round(time)
       var ext = this.selectFiles.path.split('.')[this.selectFiles.path.split('.').length - 1]
@@ -265,7 +265,6 @@ export default {
         bucketname: localStorage.getItem('bucket'),
         path: path
       }
-      this.postFile(this.selectFiles.path)
       var uptoken = {
         uptoken: qntoken.getToken(), // 七牛上传凭证
         key: Buffer(path).toString('base64').replace(/\//g, '_').replace(/\+/g, '-')
@@ -278,53 +277,6 @@ export default {
         console.log(uploader.offset) // 字节
         console.log(uploader.file) // 文件
       })
-    },
-    uploadToken: function (ext) {
-      var time = new Date().getTime() / 1000 + 3600
-      time = Math.round(time)
-      var policy = {
-        scope: localStorage.getItem('bucket') + ':' + this.path + time + Math.random() * 1000 + '.' + ext,
-        deadline: time
-      }
-      policy = JSON.stringify(policy)
-      var encodedPutPolicy = Buffer(policy).toString('base64').replace(/\//g, '_').replace(/\+/g, '-')
-      var sign = crypto.createHmac('sha1', localStorage.getItem('SecretKey')).update(encodedPutPolicy + '\n').digest().toString('base64').replace(/\//g, '_').replace(/\+/g, '-')
-      var uploadToken = localStorage.getItem('AccessKey') + ':' + sign + ':' + encodedPutPolicy
-      console.log(uploadToken)
-      return uploadToken
-    },
-    postFile: function (filepath) {
-      var ext = filepath.split('.')[filepath.split('.').length - 1]
-      var fs = require('fs')
-      var file = fs.createReadStream(filepath)
-      var token = this.uploadToken(ext)
-      var formData = new FormData()
-      formData.append('file', file)
-      formData.append('token', token)
-      var options = {
-        'method': 'POST',
-        'hostname': 'upload.qiniu.com',
-        'data': formData,
-        'port': null,
-        'headers': {
-          'authorization': 'UpToken ' + token,
-          'content-type': 'application/x-www-form-urlencoded',
-          'content-length': Buffer.byteLength(formData)
-        }
-      }
-      console.log(options)
-      var req = http.request(options, function (res) {
-        var chunks = []
-        res.on('data', function (chunk) {
-          chunks.push(chunk)
-        })
-        res.on('end', function () {
-          var body = Buffer.concat(chunks)
-          console.log(body)
-          console.log(JSON.parse(body.toString()))
-        })
-      })
-      req.end()
     },
     change: function (evt) {
       var files = evt.target.files
