@@ -269,7 +269,7 @@ export default {
         uptoken: qntoken.getToken(), // 七牛上传凭证
         key: Buffer(path).toString('base64').replace(/\//g, '_').replace(/\+/g, '-')
       }
-      let uploader = new Uploader(this.selectFiles, uptoken)
+      let uploader = new Uploader(this.selectFiles, uptoken, 1024 * 1024 * 4, 1024 * 128, 'http://upload.qiniu.com/')
       console.log(uploader)
       uploader.upload()
       uploader.on('progress', () => {

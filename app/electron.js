@@ -24,6 +24,9 @@ function createWindow () {
     width: 800
   })
 
+  // Open the DevTools.
+  // mainWindow.webContents.openDevTools();
+
   const Menu = electron.Menu;
 
   var template = [

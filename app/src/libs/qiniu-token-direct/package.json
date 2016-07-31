@@ -1,0 +1,46 @@
+{
+  "author": {
+    "name": "gakaki@qq.com"
+  },
+  "bugs": {
+    "url": "https://github.com/gakaki/qiniu-token/issues"
+  },
+  "dependencies": {},
+  "description": "七牛token纯客户端生成",
+  "devDependencies": {
+    "mocha": "~2.3.4"
+  },
+  "directories": {},
+  "dist": {
+    "shasum": "ea5d579586b22b75ad33aba60aa7bf5ad04b2c66",
+    "tarball": "https://registry.npmjs.org/qiniu-token-direct/-/qiniu-token-direct-1.0.3.tgz"
+  },
+  "homepage": "https://github.com/gakaki/qiniu-token#readme",
+  "keywords": [
+    "qiniu"
+  ],
+  "license": "MIT",
+  "main": "index",
+  "maintainers": [
+    {
+      "name": "gakaki",
+      "email": "gakaki@gmail.com"
+    }
+  ],
+  "name": "qiniu-token-direct",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/gakaki/qiniu-token-direct.git"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "tags": [
+    "7牛",
+    "qiniu",
+    "qiniu_token"
+  ],
+  "version": "1.0.3"
+}
