@@ -64,7 +64,6 @@
     <button class="button is-success" v-on:click="toSet()">
       设置
     </button>
-
     <button class="button is-success" v-on:click="selectFile('file')">
       选择文件
     </button>
@@ -74,9 +73,7 @@
     <button class="button is-success" v-on:click="uploadFile()">
       上传
     </button>
-    <button class="button is-success"  v-show="path != ''" v-on:click="toPath('')">
-      回首页
-    </button>
+    <input class="input is-primary" type="text" placeholder="上传前缀" v-model="prefix">
   </p>
   <input type="file" id="file" v-on:change="change" v-show="false"/>
   <input type="file" id="files" v-on:change="change" v-show="false"  webkitdirectory />
@@ -91,10 +88,10 @@ export default {
     return {
       list: {},
       path: '',
-      prePath: '',
       navigation: [],
       selectId: 'file',
-      selectFiles: null
+      selectFiles: null,
+      prefix: ''
     }
   },
   created: function () {
@@ -109,8 +106,6 @@ export default {
     },
     getList: function (that, prefix = '') {
       this.navigation = prefix.split('/')
-      console.log(this.navigation)
-      this.prePath = this.path
       this.path = prefix
       var postData = querystring.stringify({
         bucket: localStorage.getItem('bucket'),
@@ -255,16 +250,19 @@ export default {
     uploadFile: function () {
       console.log(this.selectFiles)
       var qntoken = require('../libs/qiniu-token-direct/index')
-      var time = new Date().getTime() / 1000 + 3600
-      time = Math.round(time)
-      var ext = this.selectFiles.path.split('.')[this.selectFiles.path.split('.').length - 1]
-      var path = this.path + time + '.' + ext
+//      var time = new Date().getTime() / 1000 + 3600
+//      time = Math.round(time)
+//      var ext = this.selectFiles.path.split('.')[this.selectFiles.path.split('.').length - 1]
+      var path = this.path + this.prefix + this.selectFiles.name
+      console.log(path)
+      path = encodeURI(path)
       qntoken.config = {
         access_key: localStorage.getItem('AccessKey'),
         secret_key: localStorage.getItem('SecretKey'),
         bucketname: localStorage.getItem('bucket'),
         path: path
       }
+      console.log(qntoken.config)
       var uptoken = {
         uptoken: qntoken.getToken(), // 七牛上传凭证
         key: Buffer(path).toString('base64').replace(/\//g, '_').replace(/\+/g, '-')
