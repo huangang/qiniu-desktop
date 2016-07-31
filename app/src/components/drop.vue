@@ -78,8 +78,8 @@
       回首页
     </button>
   </p>
-  <input type="file" id="file" v-show="false" />
-  <input type="file" id="files" v-show="false"  webkitdirectory />
+  <input type="file" id="file" v-on:change="change" v-show="false"/>
+  <input type="file" id="files" v-on:change="change" v-show="false"  webkitdirectory />
 </template>
 <script>
 import http from 'http'
@@ -92,12 +92,14 @@ export default {
       path: '',
       prePath: '',
       navigation: [],
-      selectId: 'file'
+      selectId: 'file',
+      selectFiles: null
     }
   },
   created: function () {
     this.getList(this)
   },
+  watch: {},
   methods: {
     getToken: function (str) {
       var Sign = crypto.createHmac('sha1', localStorage.getItem('SecretKey')).update(str + '\n')
@@ -233,15 +235,16 @@ export default {
       this.$route.router.go({name: 'index'})
     },
     getNavPath: function (index) {
+      index = index[0]
       var i = 0
       var path = ''
       this.navigation.forEach(function (nav) {
-        if (i <= index) {
+        if (i < index) {
           path = path + '/' + nav
         }
         i++
       })
-      return path.substring(1, path.length)
+      return path.substring(1, path.length) + '/'
     },
     selectFile: function (id) {
       this.selectId = id
@@ -249,8 +252,60 @@ export default {
       file.click()
     },
     uploadFile: function () {
-      var file = document.getElementById(this.selectId)
-      console.log(file.value)
+      console.log(this.selectFiles)
+      this.postByQiniu(this.selectFiles.path)
+    },
+    uploadToken: function (ext) {
+      var time = new Date().getTime() / 1000 + 3600
+      time = Math.round(time)
+      var policy = {
+        scope: localStorage.getItem('bucket') + ':' + this.path + time + Math.random() * 1000 + '.' + ext,
+        deadline: time
+//        returnBody: '{"name": $(fname),"size": $(fsize),"hash": $(etag)}'
+      }
+      policy = JSON.stringify(policy)
+      var encodedPutPolicy = Buffer(policy).toString('base64').replace(/\//g, '_').replace(/\+/g, '-')
+      var sign = crypto.createHmac('sha1', localStorage.getItem('SecretKey')).update(encodedPutPolicy + '\n').digest().toString('base64').replace(/\//g, '_').replace(/\+/g, '-')
+      var uploadToken = localStorage.getItem('AccessKey') + ':' + sign + ':' + encodedPutPolicy
+      console.log(uploadToken)
+      return uploadToken
+    },
+    postFile: function (filepath) {
+      var ext = filepath.split('.')[filepath.split('.').length - 1]
+      var fs = require('fs')
+      var file = fs.createReadStream(filepath)
+      var token = this.uploadToken(ext)
+      var formData = new FormData()
+      formData.append('file', file)
+      formData.append('token', token)
+      var options = {
+        'method': 'POST',
+        'hostname': 'upload.qiniu.com',
+        'data': formData,
+        'port': null,
+        'headers': {
+          'authorization': 'UpToken ' + token,
+          'content-type': 'application/x-www-form-urlencoded',
+          'content-length': Buffer.byteLength(formData)
+        }
+      }
+      console.log(options)
+      var req = http.request(options, function (res) {
+        var chunks = []
+        res.on('data', function (chunk) {
+          chunks.push(chunk)
+        })
+        res.on('end', function () {
+          var body = Buffer.concat(chunks)
+          console.log(body)
+          console.log(JSON.parse(body.toString()))
+        })
+      })
+      req.end()
+    },
+    change: function (evt) {
+      var files = evt.target.files
+      this.selectFiles = files[0]
     }
   }
 }
