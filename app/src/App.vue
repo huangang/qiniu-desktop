@@ -1,5 +1,5 @@
 <style>
-  @import url(http://fonts.useso.com/css?family=Lato:300);
+  @import url(css/font-awesome/css/font-awesome.min.css);
 
   * {
     margin: 0;
