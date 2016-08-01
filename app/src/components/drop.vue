@@ -74,6 +74,7 @@
       上传
     </button>
     <input class="input is-primary" type="text" placeholder="上传前缀" v-model="prefix">
+    <!--<input class="input is-primary" type="text" placeholder="前往目录" v-model="directory">-->
   </p>
   <input type="file" id="file" v-on:change="change" v-show="false"/>
   <input type="file" id="files" v-on:change="change" v-show="false"  webkitdirectory />
@@ -95,7 +96,7 @@ export default {
     }
   },
   created: function () {
-    this.getList(this)
+    this.getList(this, localStorage.getItem('directory'))
   },
   watch: {},
   methods: {
